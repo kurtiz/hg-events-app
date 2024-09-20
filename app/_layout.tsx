@@ -1,16 +1,17 @@
 import '~/global.css';
-
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {Theme, ThemeProvider} from '@react-navigation/native';
 import {SplashScreen, Stack} from 'expo-router';
 import {StatusBar} from 'expo-status-bar';
 import * as React from 'react';
+import {useEffect, useState} from 'react';
 import {Platform} from 'react-native';
 import {NAV_THEME} from '~/lib/constants';
 import {useColorScheme} from '~/lib/useColorScheme';
 import {PortalHost} from '@rn-primitives/portal';
-import {ThemeToggle} from '~/components/ThemeToggle';
 import {setAndroidNavigationBar} from '~/lib/android-navigation-bar';
+import Toastable from "react-native-toastable";
+import {useSafeAreaInsets} from "react-native-safe-area-context";
 
 const LIGHT_THEME: Theme = {
     dark: false,
@@ -31,9 +32,9 @@ SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
     const {colorScheme, setColorScheme, isDarkColorScheme} = useColorScheme();
-    const [isColorSchemeLoaded, setIsColorSchemeLoaded] = React.useState(false);
+    const [isColorSchemeLoaded, setIsColorSchemeLoaded] = useState(false);
 
-    React.useEffect(() => {
+    useEffect(() => {
         (async () => {
             const theme = await AsyncStorage.getItem('theme');
             if (Platform.OS === 'web') {
@@ -63,19 +64,28 @@ export default function RootLayout() {
         return null;
     }
 
+    const {top} = useSafeAreaInsets();
+
     return (
         <ThemeProvider value={isDarkColorScheme ? DARK_THEME : LIGHT_THEME}>
             <StatusBar style={isDarkColorScheme ? 'light' : 'dark'}/>
             <Stack>
-                <Stack.Screen
-                    name='index'
-                    options={{
-                        title: 'Starter Base',
-                        headerRight: () => <ThemeToggle/>,
-                    }}
-                />
+                <Stack.Screen name='AuthListener' options={{headerShown: false}}/>
+                <Stack.Screen name='index' options={{headerShown: false}}/>
+                <Stack.Screen name='SignUpScreen' options={{headerShown: false}}/>
+                <Stack.Screen name='EventsScreen' options={{headerShown: false}}/>
+                <Stack.Screen name='CreateEventScreen' options={{headerShown: false}}/>
             </Stack>
             <PortalHost/>
+            <Toastable
+                statusMap={{
+                    success: 'green',
+                    danger: 'red',
+                    warning: 'yellow',
+                    info: 'blue'
+                }}
+                offset={top}
+            />
         </ThemeProvider>
     );
 }

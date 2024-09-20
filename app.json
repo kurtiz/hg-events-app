@@ -22,7 +22,8 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "package": "com.highgang.eventsapp"
     },
     "web": {
       "bundler": "metro",
@@ -40,6 +41,12 @@
         "projectId": "bcb0d237-b00e-43a8-beea-e8ab3ced27cb"
       }
     },
-    "owner": "papilio"
+    "owner": "papilio",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/bcb0d237-b00e-43a8-beea-e8ab3ced27cb"
+    }
   }
 }

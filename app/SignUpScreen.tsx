@@ -7,18 +7,19 @@ import {Text} from '~/components/ui/text';
 import {Input} from '~/components/ui/input';
 import {Label} from '~/components/ui/label';
 import {Eye, EyeOff} from 'lucide-react-native';
-import {getAuth, signInWithEmailAndPassword} from 'firebase/auth';
+import {createUserWithEmailAndPassword, getAuth} from 'firebase/auth';
 import {app} from '~/firebase/firebaseConfig';
+import {doc, getFirestore, setDoc} from 'firebase/firestore';
 import Animated, {FadeInUp, FadeOutDown, LayoutAnimationConfig} from 'react-native-reanimated';
 import {showToastable} from 'react-native-toastable';
-import {parseFirebaseError} from '~/lib/parseFirebaseError';
-import {doc, getDoc, getFirestore} from "firebase/firestore";
-import {NativeStackNavigationProp} from "@react-navigation/native-stack";
+import {parseFirebaseError} from "~/lib/parseFirebaseError";
 import {useNavigation} from "@react-navigation/native";
+import {NativeStackNavigationProp} from "@react-navigation/native-stack";
 
-export default function LoginScreen() {
+export default function SignUpScreen() {
     const navigation = useNavigation<NativeStackNavigationProp<any>>();
     const [emailValue, setEmailValue] = React.useState('');
+    const [nameValue, setNameValue] = React.useState('');
     const [passwordValue, setPasswordValue] = React.useState('');
     const [isPasswordVisible, setIsPasswordVisible] = React.useState(true);
     const [errorMessage, setErrorMessage] = React.useState('');
@@ -33,57 +34,48 @@ export default function LoginScreen() {
         }
     }, [auth, navigation]);
 
-    const handleLogin = async () => {
+    const handleSignUp = async () => {
         try {
             setIsLoading(true);
 
             const db = getFirestore(app);
-
-            const userCredential = await signInWithEmailAndPassword(auth, emailValue, passwordValue);
+            const userCredential = await createUserWithEmailAndPassword(auth, emailValue, passwordValue);
             const user = userCredential.user;
 
-            const docRef = doc(db, "users", user.uid);
+            // Store user details in Firestore
+            await setDoc(doc(db, 'users', user.uid), {
+                name: nameValue,
+                email: emailValue,
+                uid: user.uid,
+            });
 
-            const docSnap = await getDoc(docRef);
-
-            let userData;
-            if (docSnap.exists()) {
-                console.log("Document data:", docSnap.data());
-                userData = docSnap.data();
-            } else {
-                // docSnap.data() will be undefined in this case
-                console.log("No such document!");
-                new Error("No such document!");
-            }
-
-            // Clear form fields
+            // Clear the form fields after success
             setEmailValue('');
+            setNameValue('');
             setPasswordValue('');
 
             showToastable({
-                message: `Welcome ${userData?.name}!`,
+                message: "Sign up successful!",
                 duration: 3000,
                 status: 'success',
-                position: 'top',
+                position: 'top'
             });
 
-            navigation.navigate('EventsScreen');
+            navigation.navigate('index');
         } catch (error: any) {
-            const userFriendlyMessage = parseFirebaseError(error?.code);  // Parse error
-            setErrorMessage(userFriendlyMessage);
+            setErrorMessage(parseFirebaseError(error?.message));
 
             showToastable({
-                message: userFriendlyMessage,
+                message: parseFirebaseError(error?.message),
                 duration: 3000,
                 status: 'danger',
-                position: 'top',
+                position: 'top'
             });
 
             setTimeout(() => {
                 setErrorMessage('');
             }, 5000);
-
-            console.log('Error logging in:', error?.message);
+            console.error('Error creating user:', error?.message.toString());
         } finally {
             setIsLoading(false);
         }
@@ -93,9 +85,17 @@ export default function LoginScreen() {
         <View className="flex-1 justify-center items-center gap-5 p-6 bg-secondary/30">
             <Card className="w-full max-w-sm p-6 rounded-2xl">
                 <CardHeader className="items-center">
-                    <CardTitle className="pb-2 text-center">Login</CardTitle>
+                    <CardTitle className="pb-2 text-center">Sign Up</CardTitle>
                 </CardHeader>
                 <CardContent>
+                    <Label nativeID="name">Name</Label>
+                    <Input
+                        placeholder="Name"
+                        value={nameValue}
+                        onChangeText={(value) => setNameValue(value)}
+                        className="mb-3"
+                    />
+
                     <Label nativeID="email">Email</Label>
                     <Input
                         placeholder="Email"
@@ -104,6 +104,7 @@ export default function LoginScreen() {
                         onChangeText={(value) => setEmailValue(value)}
                         className="mb-3"
                     />
+
                     <Label nativeID="password">Password</Label>
                     <View className="flex flex-row justify-between gap-x-3">
                         <Input
@@ -133,23 +134,23 @@ export default function LoginScreen() {
                                 variant="outline"
                                 className="shadow shadow-foreground/5 flex flex-row"
                                 disabled={isLoading}
-                                onPress={handleLogin}
+                                onPress={handleSignUp}
                             >
                                 {isLoading ? (
                                     <>
                                         <ActivityIndicator size="small" color="black"/>
-                                        <Text className="ml-2">Logging in...</Text>
+                                        <Text className="ml-2">Signing Up</Text>
                                     </>
                                 ) : (
-                                    <Text>Login</Text>
+                                    <Text>Sign Up</Text>
                                 )}
                             </Button>
                         </Animated.View>
                     </LayoutAnimationConfig>
                     <TouchableOpacity
                         className="w-full flex items-center justify-center mt-2"
-                        onPress={() => navigation.navigate('SignUpScreen')}>
-                        <Text className="text-blue-700 underline underline-offset-1">Sign Up</Text>
+                        onPress={() => navigation.navigate('index')}>
+                        <Text className="text-blue-700 underline underline-offset-1">Login</Text>
                     </TouchableOpacity>
                 </CardFooter>
             </Card>
