@@ -2,7 +2,8 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/high-gang.iml" filepath="$PROJECT_DIR$/.idea/high-gang.iml" />
+      <module fileurl="file://$PROJECT_DIR$/high_gang_events.iml" filepath="$PROJECT_DIR$/high_gang_events.iml" />
+      <module fileurl="file://$PROJECT_DIR$/android/high_gang_events_android.iml" filepath="$PROJECT_DIR$/android/high_gang_events_android.iml" />
     </modules>
   </component>
 </project>
